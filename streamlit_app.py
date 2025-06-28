@@ -23,15 +23,15 @@ def get_disease_info(disease_name):
         "messages": [
             {
                 "role": "system", 
-                "content": "You are a medical information assistant. Provide accurate, helpful information about eye diseases including description, symptoms, and general treatment approaches. Always recommend consulting with healthcare professionals for proper diagnosis and treatment."
+                "content": "You are a medical information assistant. Provide accurate, helpful information about eye diseases including description, symptoms, and general treatment approaches. Always recommend consulting with healthcare professionals for proper diagnosis and treatment.with simple terms and words"
             },
             {
                 "role": "user", 
                 "content": f"Provide a comprehensive overview of {disease_name} including: 1) Description of the condition, 2) Common symptoms, 3) General treatment options and management approaches. Keep it informative but accessible to general audiences."
             }
         ],
-        "temperature": 0.3,
-        "max_tokens": 500
+        "temperature": 0.7,
+        "max_tokens": 100
     }
     
     headers = {

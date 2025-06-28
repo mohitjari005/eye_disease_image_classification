@@ -5,8 +5,6 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.efficientnet import preprocess_input
 from PIL import Image
-import plotly.express as px
-import plotly.graph_objects as go
 
 # Page configuration
 st.set_page_config(
@@ -193,37 +191,29 @@ def get_disease_info(disease_name):
     except Exception as e:
         return f"Error connecting to API: {str(e)}"
 
-def create_confidence_chart(confidence, predicted_condition):
-    """Create a confidence visualization chart"""
-    fig = go.Figure(go.Indicator(
-        mode = "gauge+number+delta",
-        value = confidence * 100,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "Confidence Level"},
-        delta = {'reference': 80},
-        gauge = {
-            'axis': {'range': [None, 100]},
-            'bar': {'color': "#667eea"},
-            'steps': [
-                {'range': [0, 50], 'color': "#ffebee"},
-                {'range': [50, 80], 'color': "#fff3e0"},
-                {'range': [80, 100], 'color': "#e8f5e8"}
-            ],
-            'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
-                'value': 90
-            }
-        }
-    ))
+def create_confidence_display(confidence):
+    """Create a confidence visualization using Streamlit components"""
+    confidence_percent = confidence * 100
     
-    fig.update_layout(
-        height=300,
-        font={'color': "darkblue", 'family': "Arial"},
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)"
-    )
-    return fig
+    # Determine confidence level and color
+    if confidence_percent >= 85:
+        level = "Very High"
+        color = "#28a745"
+        emoji = "🟢"
+    elif confidence_percent >= 70:
+        level = "High"
+        color = "#17a2b8"
+        emoji = "🔵"
+    elif confidence_percent >= 50:
+        level = "Moderate"
+        color = "#ffc107"
+        emoji = "🟡"
+    else:
+        level = "Low"
+        color = "#dc3545"
+        emoji = "🔴"
+    
+    return confidence_percent, level, color, emoji
 
 # Header
 st.markdown("""
@@ -316,7 +306,7 @@ if uploaded_file is not None:
     </div>
     """, unsafe_allow_html=True)
     
-    # Metrics and confidence chart
+    # Metrics and confidence display
     col1, col2, col3 = st.columns([1, 1, 1])
     
     with col1:
@@ -331,17 +321,34 @@ if uploaded_file is not None:
         """, unsafe_allow_html=True)
     
     with col2:
+        confidence_percent, level, color, emoji = create_confidence_display(confidence)
         st.markdown(f"""
         <div class="metric-container">
             <div class="metric-value">{confidence:.1%}</div>
             <div class="metric-label">Confidence Level</div>
+            <div style="font-size: 1rem; font-weight: 600; color: {color}; margin-top: 0.5rem;">
+                {emoji} {level}
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
-        # Confidence gauge chart
-        confidence_fig = create_confidence_chart(confidence, predicted_condition)
-        st.plotly_chart(confidence_fig, use_container_width=True)
+        # Confidence progress bar
+        st.markdown(f"""
+        <div class="metric-container">
+            <div class="metric-label">Confidence Score</div>
+            <div style="margin: 1rem 0;">
+        """, unsafe_allow_html=True)
+        
+        st.progress(confidence, text=f"{confidence:.1%}")
+        
+        st.markdown(f"""
+            </div>
+            <div style="font-size: 0.9rem; color: {color}; font-weight: 500;">
+                {level} Confidence
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Medical information section
     if predicted_condition.lower() != 'normal':
